@@ -1,0 +1,77 @@
+net
+{
+    node_size = (130 60);
+    name = "MeteorBN";
+}
+
+node A
+{
+    label = "collision";
+    position = (300 30);
+    states = ("yes" "no");
+}
+
+node B
+{
+    label = "bunker_saves";
+    position = (60 160);
+    states = ("yes" "no");
+}
+
+node C
+{
+    label = "explosion";
+    position = (540 160);
+    states = ("yes" "no");
+}
+
+node D
+{
+    label = "big_fragments";
+    position = (540 290);
+    states = ("yes" "no");
+}
+
+node Impact
+{
+    label = "impact";
+    position = (300 290);
+    states = ("yes" "no");
+}
+
+node X
+{
+    label = "destroyed";
+    position = (180 420);
+    states = ("yes" "no");
+}
+
+potential (A)
+{
+    data = ( 0.999 0.001 );
+}
+
+potential (B | A)
+{
+    data = (( 0.3 0.7 ) ( 0.0 1.0 ));
+}
+
+potential (C | A)
+{
+    data = (( 0.01 0.99 ) ( 0.0 1.0 ));
+}
+
+potential (D | C)
+{
+    data = (( 0.2 0.8 ) ( 0.0 1.0 ));
+}
+
+potential (Impact | A C D)
+{
+    data = (((( 1.0 0.0 ) ( 0.0 1.0 )) (( 1.0 0.0 ) ( 1.0 0.0 ))) ((( 0.0 1.0 ) ( 0.0 1.0 )) (( 0.0 1.0 ) ( 0.0 1.0 ))));
+}
+
+potential (X | Impact B)
+{
+    data = ((( 0.0 1.0 ) ( 1.0 0.0 )) (( 0.0 1.0 ) ( 0.0 1.0 )));
+}

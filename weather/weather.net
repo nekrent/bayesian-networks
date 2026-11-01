@@ -1,0 +1,58 @@
+net
+{
+    node_size = (120 60);
+    name = "WeatherBN";
+}
+
+node Weather
+{
+    label = "weather";
+    position = (300 50);
+    states = ("sunny" "cloudy");
+}
+
+node Rain
+{
+    label = "rainy";
+    position = (100 180);
+    states = ("yes" "no");
+}
+
+node Temp
+{
+    label = "temp";
+    position = (500 180);
+    states = ("high" "low");
+}
+
+node Humidity
+{
+    label = "wet";
+    position = (300 320);
+    states = ("high" "low");
+}
+
+potential (Weather)
+{
+    data = ( 0.4 0.6 );
+}
+
+potential (Rain | Weather)
+{
+    data = (( 0.0 1.0 )
+            ( 0.6 0.4 ));
+}
+
+potential (Temp | Weather)
+{
+    data = (( 0.8 0.2 )
+            ( 0.5 0.5 ));
+}
+
+potential (Humidity | Rain Temp)
+{
+    data = ((( 0.9 0.1 )
+             ( 0.4 0.6 ))
+            (( 0.5 0.5 )
+             ( 0.3 0.7 )));
+}
