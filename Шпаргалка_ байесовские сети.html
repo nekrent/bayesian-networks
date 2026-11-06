@@ -1,0 +1,696 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=claude:viewport-fit-sides content=cover><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>.md-table{overflow-x:auto}@media print{.md-table{overflow-x:visible}}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Шпаргалка по трём работам: байесовские сети</h1>
+<p>Предмет: «Основы вероятностного моделирования». Репозиторий: <code>nekrent/bayesian-networks</code>.
+Три работы: <strong>Погода</strong>, <strong>Метеорит</strong>, <strong>Тяжесть ДТП</strong>. Каждая решена в Python (библиотека <code>pgmpy</code>) и продублирована в программе UnBBayes.</p>
+<hr>
+<h2>Часть 0. Байесовские сети с нуля</h2>
+<h3>Что это</h3>
+<p>Байесовская сеть (БС) — это <strong>схема влияний плюс таблицы вероятностей</strong>.</p>
+<ul>
+<li><strong>Схема</strong> — граф со стрелками. Стрелка <code>A → B</code> читается как «A напрямую влияет на B». Циклов быть не может.</li>
+<li><strong>Таблицы</strong> — у каждого узла своя таблица: как часто он принимает каждое значение, если известны значения его «родителей».</li>
+</ul>
+<p>Зачем это нужно: по сети можно посчитать вероятность любого события, в том числе <strong>при частично известных фактах</strong>. Например: «Если на улице высокая влажность, какова вероятность, что сегодня солнечно?»</p>
+<h3>Из чего состоит сеть</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Понятие</th>
+<th>Что значит</th>
+<th>Пример из работ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Узел</strong></td>
+<td>Случайная величина с набором состояний</td>
+<td><code>Rain</code> с состояниями «да / нет»</td>
+</tr>
+<tr>
+<td><strong>Стрелка</strong></td>
+<td>Прямое влияние родителя на ребёнка</td>
+<td><code>Weather → Rain</code></td>
+</tr>
+<tr>
+<td><strong>Родитель / ребёнок</strong></td>
+<td>Откуда стрелка / куда стрелка</td>
+<td>У <code>Humidity</code> два родителя: <code>Rain</code> и <code>Temp</code></td>
+</tr>
+<tr>
+<td><strong>Корневой узел</strong></td>
+<td>Узел без родителей</td>
+<td><code>Weather</code>, <code>A</code>, <code>atm</code>, <code>catr</code></td>
+</tr>
+<tr>
+<td><strong>Таблица CPT / CPD</strong></td>
+<td>P(узел | родители). У корня просто P(узел)</td>
+<td>P(дождь | погода)</td>
+</tr>
+<tr>
+<td><strong>Свидетельство (evidence)</strong></td>
+<td>То, что мы уже знаем наверняка</td>
+<td>«Влажность высокая»</td>
+</tr>
+<tr>
+<td><strong>Вывод (inference)</strong></td>
+<td>Расчёт вероятности узла при заданном свидетельстве</td>
+<td>P(солнечно | влажность высокая)</td>
+</tr>
+<tr>
+<td><strong>Априорная вероятность</strong></td>
+<td>Вероятность узла, когда никакого свидетельства нет</td>
+<td>P(дождь) = 0.36</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Три формулы, на которых держится всё</h3>
+<p><strong>1. Сеть как произведение таблиц.</strong> Вероятность любой полной комбинации значений равна произведению таблиц всех узлов:</p>
+<p><code>P(все узлы) = P(узел₁ | родители₁) · P(узел₂ | родители₂) · …</code></p>
+<p>Именно поэтому достаточно задать маленькие таблицы «узел при родителях», а не огромную таблицу на все комбинации сразу.</p>
+<p><strong>2. Формула полной вероятности.</strong> Если событие может случиться через несколько взаимоисключающих «путей», вероятности путей складываются:</p>
+<p><code>P(H) = P(H | A) · P(A) + P(H | не A) · P(не A)</code></p>
+<p><strong>3. Формула Байеса.</strong> Позволяет развернуть условие и найти «причину по следствию»:</p>
+<p><code>P(A | H) = P(H | A) · P(A) / P(H)</code></p>
+<h3>Термины, которые встретятся в коде</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Термин</th>
+<th>Что это</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pgmpy</code></td>
+<td>Библиотека Python для БС</td>
+</tr>
+<tr>
+<td><code>DiscreteBayesianNetwork</code></td>
+<td>Объект сети: список стрелок</td>
+</tr>
+<tr>
+<td><code>TabularCPD</code></td>
+<td>Таблица вероятностей узла. Столбцы — комбинации значений родителей, строки — состояния самого узла, каждый столбец в сумме даёт 1</td>
+</tr>
+<tr>
+<td><code>check_model()</code></td>
+<td>Проверка, что таблицы корректны (столбцы суммируются в 1, всё согласовано со структурой)</td>
+</tr>
+<tr>
+<td><code>VariableElimination</code></td>
+<td>Алгоритм <strong>точного</strong> вывода. Считает нужную вероятность, по очереди «суммируя» ненужные узлы</td>
+</tr>
+<tr>
+<td><code>query(['X'], evidence={...})</code></td>
+<td>Вопрос к сети: «чему равно P(X), если известно evidence»</td>
+</tr>
+<tr>
+<td>UnBBayes</td>
+<td>Программа с окошками, где сеть строят мышкой и смотрят вероятности на узлах</td>
+</tr>
+<tr>
+<td><code>.net</code> (формат Hugin)</td>
+<td>Файл сети, который открывается в UnBBayes через File → Open</td>
+</tr>
+<tr>
+<td><code>network.png</code></td>
+<td>Картинка сети с априорными вероятностями</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Как устроены три работы</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Работа</th>
+<th>Откуда берутся таблицы</th>
+<th>Что делаем</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Погода</td>
+<td>Даны в условии</td>
+<td>Строим сеть, считаем ответ</td>
+</tr>
+<tr>
+<td>Метеорит</td>
+<td>Даны в условии (часть узлов логические)</td>
+<td>Строим сеть, считаем ответ</td>
+</tr>
+<tr>
+<td>ДТП</td>
+<td><strong>Не даны.</strong> Оцениваются по данным</td>
+<td>Обучаем сеть и предсказываем тяжесть аварии</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Первые две работы про <strong>вывод</strong> (по готовой сети считаем). Третья про <strong>обучение</strong> (сеть сама берёт таблицы из данных).</p>
+<hr>
+<h2>Часть 1. Задача «Погода»</h2>
+<h3>Условие</h3>
+<ul>
+<li>P(солнечно) = 0.4, P(облачно) = 0.6</li>
+<li>P(дождь | облачно) = 0.6</li>
+<li>P(высокая температура | солнечно) = 0.8, P(высокая температура | облачно) = 0.5</li>
+<li>P(высокая влажность | высокая темп., дождь) = 0.9</li>
+<li>P(высокая влажность | высокая темп., нет дождя) = 0.5</li>
+<li>P(высокая влажность | низкая темп., дождь) = 0.4</li>
+<li>P(высокая влажность | низкая темп., нет дождя) = 0.3</li>
+</ul>
+<h3>Что ищем</h3>
+<ul>
+<li><strong>а)</strong> P(высокая влажность)</li>
+<li><strong>б)</strong> P(солнечно | высокая влажность)</li>
+</ul>
+<h3>Структура сети</h3>
+<p><code>Weather → Rain</code>, <code>Weather → Temp</code>, <code>Rain → Humidity</code>, <code>Temp → Humidity</code></p>
+<p>Четыре узла: <code>Weather</code> (sunny / cloudy), <code>Rain</code> (no / yes), <code>Temp</code> (low / high), <code>Humidity</code> (low / high).</p>
+<h3>Почему сеть именно такая</h3>
+<ul>
+<li><strong>Weather — общая причина</strong> дождя и температуры. Их вероятности в условии заданы «при погоде», значит, стрелки идут от погоды.</li>
+<li><strong>Humidity — следствие двух факторов</strong> сразу. Таблица влажности в условии зависит и от дождя, и от температуры, поэтому у неё две входящие стрелки.</li>
+<li><strong>Между Rain и Temp стрелки нет.</strong> Они связаны только через погоду. Из этого следует важная вещь: при известной погоде дождь и температуру можно считать независимыми и перемножать их вероятности.</li>
+</ul>
+<h3>Допущение автора</h3>
+<p>В условии нет P(дождь | солнечно). В работе принято <strong>0</strong> (при солнце дождя нет). Это выбор автора, а не данные из условия. Если взять другое значение, ответы изменятся.</p>
+<h3>Расчёт по шагам</h3>
+<p><strong>Шаг 1. Условные таблицы узлов-«детей» погоды.</strong></p>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th></th>
+<th>sunny</th>
+<th>cloudy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rain = yes</td>
+<td>0</td>
+<td>0.6</td>
+</tr>
+<tr>
+<td>Rain = no</td>
+<td>1</td>
+<td>0.4</td>
+</tr>
+<tr>
+<td>Temp = high</td>
+<td>0.8</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>Temp = low</td>
+<td>0.2</td>
+<td>0.5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Шаг 2. Влажность при каждой погоде</strong> (внутри одной погоды перемножаем дождь и температуру).</p>
+<ul>
+<li>При <code>sunny</code>: дождя нет, температура высокая с вероятностью 0.8:
+<code>0.8 · 0.5 + 0.2 · 0.3 = 0.46</code></li>
+<li>При <code>cloudy</code>: дождь с вероятностью 0.6, температура высокая с вероятностью 0.5:
+<code>0.6 · (0.5 · 0.9 + 0.5 · 0.4) + 0.4 · (0.5 · 0.5 + 0.5 · 0.3)</code>
+<code>= 0.6 · 0.65 + 0.4 · 0.4 = 0.39 + 0.16 = 0.55</code></li>
+</ul>
+<p><strong>Шаг 3. Ответ а) — формула полной вероятности по погоде.</strong></p>
+<p><code>P(высокая влажность) = 0.4 · 0.46 + 0.6 · 0.55 = 0.184 + 0.33 = 0.514</code></p>
+<p><strong>Шаг 4. Ответ б) — формула Байеса.</strong></p>
+<p><code>P(солнечно | высокая влажность) = 0.4 · 0.46 / 0.514 = 0.184 / 0.514 ≈ 0.358</code></p>
+<p>Смысл: изначально солнечно с вероятностью 0.4, но высокая влажность чаще бывает при облачной погоде (0.55 против 0.46), поэтому после наблюдения влажности шанс солнца падает до 0.358.</p>
+<h3>Дополнительные цифры (можно проверить в сети)</h3>
+<ul>
+<li>Априорные вероятности: P(дождь) = 0.6 · 0.6 = <strong>0.36</strong>; P(высокая температура) = 0.4 · 0.8 + 0.6 · 0.5 = <strong>0.62</strong>.</li>
+<li>Из примера в конце ноутбука (свидетельство «влажность высокая»): P(облачно | влажность высокая) = 1 − 0.358 ≈ <strong>0.642</strong>; P(дождь | влажность высокая) = 0.6 · 0.6 · 0.65 / 0.514 ≈ <strong>0.455</strong>.</li>
+</ul>
+<h3>Что делает каждый кусок кода (<code>weather_bn.ipynb</code>)</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Код</th>
+<th>Что делает</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>!pip install pgmpy</code></td>
+<td>Ставит библиотеку в Colab</td>
+</tr>
+<tr>
+<td><code>DiscreteBayesianNetwork([...])</code></td>
+<td>Описывает стрелки, то есть структуру</td>
+</tr>
+<tr>
+<td><code>names = {...}</code></td>
+<td>Названия состояний узлов (sunny/cloudy, no/yes, low/high)</td>
+</tr>
+<tr>
+<td><code>TabularCPD(...)</code> ×4</td>
+<td>Таблицы вероятностей Weather, Rain, Temp, Humidity. Комментарии в строках показывают, к какому состоянию относится строка</td>
+</tr>
+<tr>
+<td><code>infer = VariableElimination(model)</code></td>
+<td>Создаёт «движок» вывода</td>
+</tr>
+<tr>
+<td><code>infer.query([v])</code> для каждого узла</td>
+<td>Считает априорные вероятности всех узлов (то, что рисуется на картинке)</td>
+</tr>
+<tr>
+<td><code>draw(...)</code></td>
+<td>Рисует сеть в стиле UnBBayes: жёлтые прямоугольники с процентами</td>
+</tr>
+<tr>
+<td><code>query(['Weather'], evidence={'Humidity': 'high'})</code></td>
+<td>Ответ б): P(погода | высокая влажность). Заодно считается и P(дождь | высокая влажность)</td>
+</tr>
+<tr>
+<td><code>weather.net</code></td>
+<td>Та же сеть для UnBBayes</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h2>Часть 2. Задача «Метеорит»</h2>
+<h3>Условие</h3>
+<p>Все узлы имеют состояния <code>no</code> / <code>yes</code>.</p>
+<ul>
+<li><strong>A</strong> — учёные уверены, что метеорит попадёт: P(A) = 0.999</li>
+<li><strong>B</strong> — эвакуация в убежище спасает людей: P(B | A) = 0.3</li>
+<li><strong>C</strong> — метеорит взорвали: P(C | A) = 0.01</li>
+<li><strong>D</strong> — после взрыва остались большие обломки: P(D | C) = 0.2</li>
+</ul>
+<h3>Что ищем</h3>
+<p>P(человечество уничтожено).</p>
+<h3>Структура сети</h3>
+<p><code>A → B</code>, <code>A → C</code>, <code>C → D</code>, <code>A → Impact</code>, <code>C → Impact</code>, <code>D → Impact</code>, <code>Impact → X</code>, <code>B → X</code></p>
+<p>Здесь шесть узлов. Четыре из условия (A, B, C, D) и два служебных, которые добавил автор:</p>
+<ul>
+<li><strong>Impact</strong> — до Земли долетел метеорит или крупные обломки.</li>
+<li><strong>X</strong> — человечество уничтожено.</li>
+</ul>
+<h3>Зачем нужны Impact и X</h3>
+<p>Условие задачи на словах описывает логику: «уничтожение случится, если удар был и бункер не спас». БС умеет работать только с таблицами вероятностей, поэтому логику переводят в <strong>детерминированные узлы</strong>, у которых в таблицах только 0 и 1:</p>
+<ul>
+<li><code>Impact = A и (не C или D)</code>. Удар есть, если метеорит летит, и либо его не взрывали, либо взрыв оставил большие обломки.</li>
+<li><code>X = Impact и не B</code>. Гибель, если удар был и бункер не спас.</li>
+</ul>
+<p>Так сеть сама «выполняет» логику условия.</p>
+<h3>Допущения автора</h3>
+<ul>
+<li>Если метеорит не летит к Земле (<code>A = no</code>), его не взрывают и не эвакуируются: в таблицах B и C при <code>A = no</code> стоит <code>no</code> с вероятностью 1.</li>
+<li>Без взрыва обломков нет: <code>D = no</code>, если <code>C = no</code>.</li>
+</ul>
+<h3>Расчёт по шагам</h3>
+<p><strong>Шаг 1. Три сценария при A = yes</strong> (метеорит летит):</p>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Сценарий</th>
+<th>Вероятность</th>
+<th>Что в итоге</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Не взорвали (<code>C = no</code>)</td>
+<td>0.999 · 0.99 = 0.98901</td>
+<td>Удар</td>
+</tr>
+<tr>
+<td>Взорвали, обломки большие (<code>C = yes</code>, <code>D = yes</code>)</td>
+<td>0.999 · 0.01 · 0.2 = 0.001998</td>
+<td>Удар обломками</td>
+</tr>
+<tr>
+<td>Взорвали, обломков нет (<code>C = yes</code>, <code>D = no</code>)</td>
+<td>0.999 · 0.01 · 0.8 = 0.007992</td>
+<td>Безопасно</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Шаг 2. Вероятность удара.</strong></p>
+<p><code>P(Impact) = 0.98901 + 0.001998 = 0.991008</code></p>
+<p><strong>Шаг 3. Бункер не спас с вероятностью 1 − 0.3 = 0.7.</strong></p>
+<p><code>P(X) = 0.991008 · 0.7 = 0.6937056</code></p>
+<p><strong>Та же формула одной строкой:</strong></p>
+<p><code>P(X) = P(A) · P(не B | A) · (P(не C | A) + P(C | A) · P(D | C))</code>
+<code>= 0.999 · 0.7 · (0.99 + 0.01 · 0.2) = 0.6937056</code></p>
+<h3>Почему ответ такой большой</h3>
+<p>Три причины: метеорит почти наверняка летит (0.999), взорвать его почти не удаётся (0.01), а бункер спасает лишь в 30% случаев. Основной вклад даёт путь «не взорвали, бункер не спас»: 0.999 · 0.99 · 0.7 ≈ 0.692.</p>
+<h3>Вывод «назад» (в конце ноутбука)</h3>
+<ul>
+<li><code>query(['C'], evidence={'X': 'yes'})</code> отвечает: если человечество уничтожено, насколько вероятно, что метеорит взрывали. Это формула Байеса: <code>0.999 · 0.01 · 0.2 · 0.7 / 0.6937056 ≈ 0.002</code>. То есть почти наверняка не взрывали.</li>
+<li><code>query(['X'], evidence={'C': 'yes'})</code> отвечает: если метеорит взорвали, какова вероятность гибели. При <code>C = yes</code> удар происходит только при больших обломках: <code>0.2 · 0.7 = 0.14</code>.</li>
+</ul>
+<h3>Что делает каждый кусок кода (<code>meteor_bn.ipynb</code>)</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Код</th>
+<th>Что делает</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DiscreteBayesianNetwork([...])</code></td>
+<td>Восемь стрелок структуры</td>
+</tr>
+<tr>
+<td><code>cpd_A</code></td>
+<td>Корень: <code>no</code> 0.001, <code>yes</code> 0.999</td>
+</tr>
+<tr>
+<td><code>cpd_B</code>, <code>cpd_C</code>, <code>cpd_D</code></td>
+<td>Таблицы с условиями. Первый столбец (родитель = <code>no</code>) всегда <code>no</code> с вероятностью 1, второй содержит числа из условия</td>
+</tr>
+<tr>
+<td><code>cpd_Impact</code>, <code>cpd_X</code></td>
+<td>Детерминированные таблицы из нулей и единиц, реализующие логику</td>
+</tr>
+<tr>
+<td><code>query</code> по всем узлам</td>
+<td>Априорные вероятности узлов, среди них <code>P(X)</code></td>
+</tr>
+<tr>
+<td>«Проверка вручную»</td>
+<td>Печатает <code>0.999 · 0.7 · (0.99 + 0.01 · 0.2)</code> для сверки с ответом сети</td>
+</tr>
+<tr>
+<td><code>draw(...)</code></td>
+<td>Картинка в стиле UnBBayes</td>
+</tr>
+<tr>
+<td>Два последних <code>query</code></td>
+<td>Вывод «назад» и «вперёд» по свидетельству (см. выше)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h2>Часть 3. Задача «Тяжесть ДТП»</h2>
+<h3>Условие</h3>
+<p>Создать алгоритм предиктивной аналитики на основе <strong>ненаивной</strong> байесовской сети: по сценарию ДТП предсказать итоговую степень тяжести. Данные: первые 10 000–20 000 записей таблицы <code>Bayes_start_table_1.xlsx</code> (в работе взято 20 000).</p>
+<h3>Целевой узел <code>Severity</code></h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Класс</th>
+<th>Код <code>grav</code> в базе</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S0</td>
+<td>1</td>
+<td>Не пострадал</td>
+</tr>
+<tr>
+<td>S1</td>
+<td>2</td>
+<td>Погиб</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>3</td>
+<td>Госпитализирован</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>4</td>
+<td>Лёгкая травма</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Признаки (12 штук)</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Признак</th>
+<th>Значение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>atm</code></td>
+<td>Погодные условия</td>
+</tr>
+<tr>
+<td><code>lum</code></td>
+<td>Освещённость</td>
+</tr>
+<tr>
+<td><code>surf</code></td>
+<td>Состояние покрытия</td>
+</tr>
+<tr>
+<td><code>catr</code></td>
+<td>Категория дороги</td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td>Тип пересечения</td>
+</tr>
+<tr>
+<td><code>circ</code></td>
+<td>Режим движения</td>
+</tr>
+<tr>
+<td><code>prof</code></td>
+<td>Уклон дороги</td>
+</tr>
+<tr>
+<td><code>infra</code></td>
+<td>Инфраструктура</td>
+</tr>
+<tr>
+<td><code>situ</code></td>
+<td>Место аварии</td>
+</tr>
+<tr>
+<td><code>catv</code></td>
+<td>Категория транспортного средства</td>
+</tr>
+<tr>
+<td><code>manv</code></td>
+<td>Манёвр ТС</td>
+</tr>
+<tr>
+<td><code>col</code></td>
+<td>Тип столкновения</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Что такое «ненаивная» сеть</h3>
+<p><strong>Наивная</strong> сеть: целевой узел — единственный родитель всех признаков (<code>Severity → каждый признак</code>). Она предполагает, что признаки независимы друг от друга при известной тяжести. Это сильное упрощение.</p>
+<p><strong>Ненаивная</strong> сеть: признаки связаны <strong>между собой</strong> осмысленными причинными стрелками, и только потом часть из них влияет на тяжесть. Структуру автор задаёт сам.</p>
+<h3>Структура сети (<code>EDGES</code> в коде)</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Стрелки</th>
+<th>Почему так</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>catr → int</code>, <code>catr → circ</code>, <code>catr → infra</code>, <code>catr → prof</code></td>
+<td>Категория дороги определяет её устройство: пересечения, режим движения, инфраструктуру, уклон</td>
+</tr>
+<tr>
+<td><code>atm → surf</code>, <code>atm → lum</code></td>
+<td>Погода влияет на состояние покрытия и освещённость</td>
+</tr>
+<tr>
+<td><code>int → manv</code>, <code>circ → manv</code>, <code>prof → manv</code></td>
+<td>Перекрёсток, режим движения и уклон определяют, какой манёвр выполняет ТС</td>
+</tr>
+<tr>
+<td><code>manv → col</code>, <code>surf → col</code>, <code>lum → col</code></td>
+<td>Манёвр, покрытие и видимость влияют на тип столкновения</td>
+</tr>
+<tr>
+<td><code>infra → situ</code></td>
+<td>Инфраструктура определяет место аварии</td>
+</tr>
+<tr>
+<td><code>col → Severity</code>, <code>catv → Severity</code>, <code>situ → Severity</code></td>
+<td>Тип столкновения, вид транспорта и место определяют итоговую тяжесть</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Корневые узлы без родителей: <code>atm</code>, <code>catr</code>, <code>catv</code>. Целевой узел <code>Severity</code> не имеет детей.</p>
+<p>Эти связи придумал автор по здравому смыслу. Из данных они не получены.</p>
+<h3>Ход работы (по ячейкам ноутбука)</h3>
+<p><strong>1. Загрузка.</strong> Файл берётся с Google Диска преподавателя (<code>gdown</code>). Если не скачался, его загружают в Colab вручную.</p>
+<p><strong>2. Предобработка</strong> (по коду преподавателя <code>23.py</code>):</p>
+<ul>
+<li>берутся первые 20 000 записей;</li>
+<li>оставляются только категории ТС из списка <code>values1</code> (мотоциклы, велосипеды, грузовики и т. д.) и тяжесть 1–4;</li>
+<li><code>grav</code> переименовывается в <code>Severity</code> (S0–S3);</li>
+<li>все признаки приводятся к строкам, потому что для БС значения — это <strong>категории</strong>, а не числа;</li>
+<li>результат: <strong>20 000 записей → 5 727</strong> после фильтра.</li>
+</ul>
+<p>В коде есть переключатель <code>INCLUDE_CARS = False</code>. Если поставить <code>True</code>, в выборку добавятся легковые автомобили (<code>catv = 7</code>), которых нет в списке преподавателя.</p>
+<p><strong>3. Проверка данных.</strong> Условия аварии (освещённость, погода, тип дороги) одинаковы для всех её участников. Код группирует записи по номеру аварии <code>Num_Acc</code> и печатает долю аварий, где эти значения разные. В нормальных данных там должен быть ноль. Дополнительно сравнивается число строк в трёх исходных таблицах (см. раздел «Ограничение данных»).</p>
+<p><strong>4. Архитектура.</strong> Задаются стрелки <code>EDGES</code> и рисуется граф.</p>
+<p><strong>5. Обучение.</strong></p>
+<ul>
+<li>Выборка делится <strong>80/20 по авариям</strong> (<code>GroupShuffleSplit</code>, <code>random_state=42</code>). Записи одной аварии целиком попадают либо в обучение, либо в тест. Иначе сеть «подглядела» бы в тест через соседние строки той же аварии.</li>
+<li>Таблицы вероятностей считает <code>BayesianEstimator</code> с априорным распределением <strong>BDeu</strong> (<code>equivalent_sample_size=5</code>). Это значит: к каждой ячейке таблицы добавляется небольшая доля «воображаемых наблюдений» (всего 5 на узел). Редкие комбинации не получают вероятность 0, а таблицы получаются сглаженными.</li>
+<li><code>check_model()</code> проверяет корректность.</li>
+</ul>
+<p><strong>6. Предсказание и оценка.</strong></p>
+<ul>
+<li>Для каждой строки теста <code>VariableElimination</code> считает P(Severity | все признаки). Выбирается класс с наибольшей вероятностью.</li>
+<li>Когда известны все признаки, ответ зависит <strong>только от марковского одеяла</strong> узла <code>Severity</code>. У <code>Severity</code> нет детей, поэтому это просто родители: <code>col</code>, <code>catv</code>, <code>situ</code>. Остальные девять признаков на ответ не влияют.</li>
+<li>Кеш по уникальным комбинациям признаков ускоряет расчёт.</li>
+<li>Метрики: <strong>accuracy</strong> (доля верных ответов), <strong>macro-F1</strong> (качество, усреднённое по всем четырём классам), <strong>матрица ошибок</strong> (кто с кем перепутан).</li>
+<li><strong>Базовая линия «всегда S0»</strong>: предсказываем самый частый класс. Любая модель должна быть лучше неё, иначе она бесполезна.</li>
+</ul>
+<p><strong>7. Сравнение с наивной сетью и Hill Climb.</strong></p>
+<ul>
+<li>Наивная сеть обучается на тех же данных для сравнения.</li>
+<li><code>HillClimbSearch</code> с оценкой <code>bic-d</code> и <code>max_indegree=3</code> сам ищет структуру по данным. Код печатает найденные связи и отдельно те, что ведут к <code>Severity</code>.</li>
+</ul>
+<p><strong>8. Сценарии.</strong> Итоговая модель обучается на всех данных. Функция <code>scenario(...)</code> задаёт известные условия и показывает распределение тяжести. В таблице сравниваются: без информации, мотоцикл &gt;125 см³ (<code>catv=33</code>), велосипед (<code>catv=1</code>), фронтальное столкновение (<code>col=1</code>), мотоцикл + фронтальное. Строки таблицы — сценарии, столбцы — S0…S3. Чем сильнее строка отличается от «без информации», тем больше информации несёт условие.</p>
+<p><strong>9. Экспорт.</strong> Функция <code>to_hugin</code> сохраняет сеть в <code>dtp.net</code> для UnBBayes.</p>
+<h3>Результат</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Модель</th>
+<th>Точность на тесте</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ненаивная сеть (эта архитектура)</td>
+<td>0.425</td>
+</tr>
+<tr>
+<td>Наивная сеть</td>
+<td>0.418</td>
+</tr>
+<tr>
+<td>«Всегда S0» (базовая линия)</td>
+<td>0.420</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Что это значит</h3>
+<p>Сеть практически не лучше простейшей базовой линии. Разница 0.425 против 0.420 составляет полпроцента, на таком тесте её нельзя отличить от случайного шума (это моя оценка, в репозитории такой проверки нет). Наивная сеть даже чуть хуже базовой линии.</p>
+<h3>Ограничение данных (главная причина слабого результата)</h3>
+<p>По README, таблица склеена из трёх таблиц базы ДТП <strong>по номеру строки, а не по номеру аварии</strong>:</p>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th>Столбцы</th>
+<th>Откуда</th>
+<th>Строк</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>catv</code>, <code>manv</code></td>
+<td>Таблица транспортных средств</td>
+<td>94 493</td>
+</tr>
+<tr>
+<td><code>lum</code> … <code>catr</code></td>
+<td>Таблица аварий</td>
+<td>55 302</td>
+</tr>
+<tr>
+<td><code>grav</code></td>
+<td>Таблица участников</td>
+<td>126 662</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Таблицы разной длины, поэтому признаки и тяжесть в одной строке часто относятся к <strong>разным авариям</strong>. Связи между ними в таком наборе нет. Поиск структуры Hill Climb это подтверждает: он не находит ни одной связи тяжести с признаками. Ограничение лежит в исходных данных, а не в архитектуре сети.</p>
+<p>Эти цифры взяты из README и кода репозитория. Сам ноутбук я не запускал, потому что файл данных лежит на Google Диске преподавателя и для меня недоступен.</p>
+<hr>
+<h2>Часть 4. Сводка и вопросы на защиту</h2>
+<h3>Сводка</h3>
+<div class="md-table" role="group" aria-label="Table" tabindex="0"><table>
+<thead>
+<tr>
+<th></th>
+<th>Погода</th>
+<th>Метеорит</th>
+<th>ДТП</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Тип задачи</td>
+<td>Вывод</td>
+<td>Вывод</td>
+<td>Обучение + предсказание</td>
+</tr>
+<tr>
+<td>Узлов</td>
+<td>4</td>
+<td>6</td>
+<td>13 (12 признаков + Severity)</td>
+</tr>
+<tr>
+<td>Откуда таблицы</td>
+<td>Из условия</td>
+<td>Из условия + логика 0/1</td>
+<td>Оцениваются по данным (BDeu)</td>
+</tr>
+<tr>
+<td>Ответ</td>
+<td>0.514 и 0.358</td>
+<td>0.6937056</td>
+<td>Точность 0.425</td>
+</tr>
+<tr>
+<td>Ключевая идея</td>
+<td>Полная вероятность и Байес</td>
+<td>Логические узлы</td>
+<td>Ненаивная структура, честная оценка</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3>Вопросы, которые могут задать, и короткие ответы</h3>
+<p><strong>Что такое байесовская сеть?</strong>
+Граф влияний плюс таблицы условных вероятностей. Вероятность любой комбинации значений равна произведению таблиц узлов. По сети считают вероятность любого узла при известных значениях других.</p>
+<p><strong>Почему в «Погоде» у влажности две стрелки на входе?</strong>
+Влажность в условии зависит одновременно от дождя и температуры. Так задана её таблица из четырёх значений.</p>
+<p><strong>Откуда допущение P(дождь | солнечно) = 0 и на что оно влияет?</strong>
+В условии этого значения нет, автор принял 0 по здравому смыслу. Оно входит в P(влажность | солнечно) и тем самым меняет оба ответа.</p>
+<p><strong>Зачем в «Метеорите» узлы Impact и X?</strong>
+Чтобы перевести логику условия («удар и бункер не спас») в таблицы из нулей и единиц. БС работает только с таблицами вероятностей.</p>
+<p><strong>Что такое свидетельство и как оно меняет вероятности?</strong>
+Свидетельство — уже известное значение узла. При выводе мы пересчитываем вероятности остальных узлов с учётом этого факта (формула Байеса).</p>
+<p><strong>Чем ненаивная сеть отличается от наивной?</strong>
+В наивной все признаки зависят только от целевого узла и считаются независимыми друг от друга. В ненаивной между признаками есть собственные причинные стрелки.</p>
+<p><strong>Почему разбиение на обучение и тест сделано по авариям?</strong>
+Записи одной аварии очень похожи. Если разделить их между обучением и тестом, сеть получит подсказки из теста, и точность будет завышена.</p>
+<p><strong>Что такое BDeu и зачем он нужен?</strong>
+Байесовская оценка таблиц с небольшим числом «псевдонаблюдений». Редкие комбинации не получают вероятность 0, а таблицы получаются устойчивее.</p>
+<p><strong>Почему точность всего 0.425, и это не провал?</strong>
+Базовая линия «всегда S0» даёт 0.420, то есть сеть почти не лучше неё. Причина в данных: признаки и тяжесть склеены по номеру строки из разных аварий, и связи между ними нет. Hill Climb подтверждает это: связей с <code>Severity</code> не находит.</p>
+<p><strong>Какие признаки реально влияют на предсказание?</strong>
+При известных всех признаках только родители <code>Severity</code>: <code>col</code>, <code>catv</code>, <code>situ</code> (марковское одеяло, так как у <code>Severity</code> нет детей).</p>
+
+</body></html>
